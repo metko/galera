@@ -7,6 +7,7 @@ use Metko\Galera\Exceptions\ConversationIsClosed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Metko\Galera\Exceptions\ConversationInvalidType;
 use Metko\Galera\Exceptions\ConversationDoesntExists;
+use Metko\Galera\Exceptions\UnauthorizedConversation;
 
 class MessagesTest extends TestCase
 {
@@ -25,10 +26,11 @@ class MessagesTest extends TestCase
     }
 
     /** @test */
-    public function a_user_cant_write_in_a_conversation_that_is_not_participants_throw_exeption()
+    public function sending_message_in_a_conversation_that_is_not_participants_throw_exeption()
     {
+        $this->expectException(UnauthorizedConversation::class);
         $this->user3->write('Hey', $this->conversation->id);
-        $this->assertCount(0, $this->conversation->messages);
+        $this->assertCount(0, $this->conversation->fresh()->messages);
     }
 
     /** @test */
@@ -52,8 +54,7 @@ class MessagesTest extends TestCase
     {
         $this->expectException(ConversationIsClosed::class);
         $this->conversation->close();
-        $message = 'test message';
-        $this->user->write($message, $this->conversation);
+        $this->user->write('test message', $this->conversation);
         $this->assertCount(0, $this->conversation->messages->count());
     }
 }

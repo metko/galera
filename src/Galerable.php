@@ -4,6 +4,7 @@ namespace Metko\Galera;
 
 use Metko\Galera\Facades\Galera;
 use Metko\Galera\Exceptions\ConversationIsClosed;
+use Metko\Galera\Exceptions\UnauthorizedConversation;
 
 trait Galerable
 {
@@ -22,6 +23,8 @@ trait Galerable
             $conversation = Galera::getConversation($conversation);
 
             return $conversation->messages()->create($message);
+        } else {
+            throw UnauthorizedConversation::create();
         }
     }
 
