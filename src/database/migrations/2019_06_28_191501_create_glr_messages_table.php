@@ -14,10 +14,12 @@ class CreateGlrMessagesTable extends Migration
         Schema::create('glr_messages', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->text('message');
+            $table->unsignedBigInteger('owner_id');
             $table->unsignedBigInteger('conversation_id');
             $table->unsignedBigInteger('reffer_to')->nullable();
             $table->timestamps();
 
+            $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('conversation_id')->references('id')->on('glr_conversations')->onDelete('cascade');
             $table->foreign('reffer_to')->references('id')->on('glr_messages')->onDelete('cascade');
         });

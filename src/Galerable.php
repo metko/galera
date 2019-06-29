@@ -3,6 +3,7 @@
 namespace Metko\Galera;
 
 use Metko\Galera\Facades\Galera;
+use Metko\Galera\Events\MessageSent;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Metko\Galera\Exceptions\UnauthorizedConversation;
 use Metko\Galera\Exceptions\MessageDoesntBelongsToConversation;
@@ -32,8 +33,9 @@ trait Galerable
                 }
                 $message['reffer_to'] = $reffer->id;
             }
-
-            return $conversation->messages()->create($message);
+            $message['owner_id'] = $this->id;
+            $message = $conversation->messages()->create($message);
+            event(new MessageSent($message));
         } else {
             throw UnauthorizedConversation::create();
         }

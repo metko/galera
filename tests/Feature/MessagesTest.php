@@ -6,6 +6,8 @@ use Tests\TestCase;
 use Metko\Galera\GlrMessage;
 use Metko\Galera\Facades\Galera;
 use Metko\Galera\GlrConversation;
+use Metko\Galera\Events\MessageSent;
+use Illuminate\Support\Facades\Event;
 use Metko\Galera\Exceptions\MessageDoesntExist;
 use Metko\Galera\Exceptions\MessageInvalidType;
 use Metko\Galera\Exceptions\ConversationIsClosed;
@@ -39,6 +41,17 @@ class MessagesTest extends TestCase
         $this->user2->write('response message', $this->conversation->id, $message1->id);
         $message2 = GlrMessage::all()->last();
         $this->assertTrue($message2->isResponse());
+    }
+
+    /** @test */
+    public function sending_a_message_fire_an_event()
+    {
+        Event::fake();
+        $this->user->write('test message', $this->conversation->id);
+        $message = GlrMessage::all()->last();
+        Event::assertDispatched(MessageSent::class, function ($event) use ($message) {
+            return $event->message->id === $message->id;
+        });
     }
 
     /** @test */

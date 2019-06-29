@@ -3,7 +3,9 @@
 namespace Tests\Unit;
 
 use Tests\TestCase;
+use Tests\Models\User;
 use Metko\Galera\GlrMessage;
+use Metko\Galera\GlrConversation;
 
 class MessageTest extends TestCase
 {
@@ -15,7 +17,7 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_isResponse()
     {
-        $message = factory(GlrMessage::class)->create(['reffer_to' => 1, 'conversation_id' => 1]);
+        $message = factory(GlrMessage::class)->create(['reffer_to' => 1, 'conversation_id' => 1, 'owner_id' => $this->user->id]);
         $this->assertTrue($message->isResponse());
     }
 
@@ -28,5 +30,23 @@ class MessageTest extends TestCase
         $message2 = GlrMessage::all()->last();
         $this->assertInstanceOf(GlrMessage::class, $message2->reffer);
         $this->assertTrue($message2->reffer->is($message1));
+    }
+
+    /** @test */
+    public function it_has_owner()
+    {
+        $this->user->write('message', $this->conversation);
+        $message = GlrMessage::all()->last();
+        $this->assertInstanceOf(User::class, $message->owner);
+        $this->assertTrue($message->owner->is($this->user));
+    }
+
+    /** @test */
+    public function it_has_conversation()
+    {
+        $this->user->write('message', $this->conversation);
+        $message = GlrMessage::all()->last();
+        $this->assertInstanceOf(GlrConversation::class, $message->conversation);
+        $this->assertTrue($message->conversation->is($this->conversation));
     }
 }

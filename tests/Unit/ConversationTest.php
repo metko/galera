@@ -26,7 +26,7 @@ class ConversationTest extends TestCase
     public function it_has_messages()
     {
         $conversation = factory(GlrConversation::class)->create();
-        $message = factory(GlrMessage::class)->create(['conversation_id' => $conversation->id]);
+        $message = factory(GlrMessage::class)->create(['conversation_id' => $conversation->id, 'owner_id' => $this->user->id]);
         $this->assertTrue($conversation->messages->first()->is($message));
     }
 
