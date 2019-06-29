@@ -3,11 +3,17 @@
 namespace Tests\Features;
 
 use Tests\TestCase;
+use Metko\Galera\GlrMessage;
+use Metko\Galera\Facades\Galera;
+use Metko\Galera\GlrConversation;
+use Metko\Galera\Exceptions\MessageDoesntExist;
+use Metko\Galera\Exceptions\MessageInvalidType;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Metko\Galera\Exceptions\ConversationInvalidType;
 use Metko\Galera\Exceptions\ConversationDoesntExists;
 use Metko\Galera\Exceptions\UnauthorizedConversation;
+use Metko\Galera\Exceptions\MessageDoesntBelongsToConversation;
 
 class MessagesTest extends TestCase
 {
@@ -23,6 +29,43 @@ class MessagesTest extends TestCase
     {
         $this->user->write('test message', $this->conversation->id);
         $this->assertCount(1, $this->conversation->messages);
+    }
+
+    /** @test */
+    public function a_user_can_send_message_while_reffering_another()
+    {
+        $this->user->write('test message', $this->conversation->id);
+        $message1 = GlrMessage::all()->last();
+        $this->user2->write('response message', $this->conversation->id, $message1->id);
+        $message2 = GlrMessage::all()->last();
+        $this->assertTrue($message2->isResponse());
+    }
+
+    /** @test */
+    public function reffering_a_message_that_doest_exist_throw_exception()
+    {
+        $this->expectException(MessageDoesntExist::class);
+        $this->user->write('test message', $this->conversation->id);
+        $message1 = GlrMessage::all()->last();
+        $this->user2->write('response message', $this->conversation->id, 4);
+    }
+
+    /** @test */
+    public function reffering_a_message_that_doesnt_belongs_to_the_conversation_throw_exception()
+    {
+        $this->expectException(MessageDoesntBelongsToConversation::class);
+        $conversation = Galera::create(1, 2);
+        $this->user->write('test message', $this->conversation->id);
+        $message1 = GlrMessage::all()->last();
+        $this->user2->write('response message', $conversation->id, $message1);
+    }
+
+    /** @test */
+    public function reffering_a_message_with_an_invalid_type_throw_exception()
+    {
+        $this->expectException(MessageInvalidType::class);
+        $this->user->write('test message', $this->conversation->id);
+        $this->user2->write('response message', $this->conversation->id, new GlrConversation());
     }
 
     /** @test */

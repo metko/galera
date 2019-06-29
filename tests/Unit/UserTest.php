@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Features;
+namespace Tests\Unit;
 
 use Tests\TestCase;
 use Metko\Galera\GlrMessage;

@@ -5,6 +5,8 @@ namespace Metko\Galera;
 use Tests\Models\User;
 use Illuminate\Support\Str;
 use Metko\Galera\Exceptions\UserDoesntExist;
+use Metko\Galera\Exceptions\MessageDoesntExist;
+use Metko\Galera\Exceptions\MessageInvalidType;
 use Metko\Galera\Exceptions\InvalidUserInstance;
 use Metko\Galera\Exceptions\InsufisantParticipant;
 use Metko\Galera\Exceptions\ConversationInvalidType;
@@ -94,5 +96,26 @@ class GaleraClass
         }
 
         return $conversation;
+    }
+
+    public function getMessage($message)
+    {
+        if (is_numeric($message) || is_integer($message)) {
+            $messageId = $message;
+            $message = GlrMessage::whereId($message)->first();
+            if (!$message) {
+                throw MessageDoesntExist::create($messageId);
+            }
+        }
+        if (!$message instanceof GlrMessage) {
+            throw MessageInvalidType::create();
+        }
+
+        return $message;
+    }
+
+    public function messageBelongsToConversation($message, $conversation)
+    {
+        return $conversation->messages->contains('id', $message->id);
     }
 }

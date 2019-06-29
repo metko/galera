@@ -15,9 +15,11 @@ class CreateGlrMessagesTable extends Migration
             $table->bigIncrements('id');
             $table->text('message');
             $table->unsignedBigInteger('conversation_id');
+            $table->unsignedBigInteger('reffer_to')->nullable();
             $table->timestamps();
 
             $table->foreign('conversation_id')->references('id')->on('glr_conversations')->onDelete('cascade');
+            $table->foreign('reffer_to')->references('id')->on('glr_messages')->onDelete('cascade');
         });
     }
 
