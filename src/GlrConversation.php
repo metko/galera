@@ -5,6 +5,7 @@ namespace Metko\Galera;
 use Tests\Models\User;
 use Metko\Galera\Facades\Galera;
 use Illuminate\Database\Eloquent\Model;
+use Metko\Galera\Exceptions\CantRemoveUser;
 use Metko\Galera\Exceptions\UserAlreadyInConversation;
 
 class GlrConversation extends Model
@@ -33,7 +34,6 @@ class GlrConversation extends Model
         $users = collect($users)->map(function ($user) {
             return $this->getUser($user)->id;
         });
-        //dd($users);
 
         return $this->participants()->syncWithoutDetaching($users);
     }
@@ -54,7 +54,11 @@ class GlrConversation extends Model
 
     public function remove($user)
     {
-        $this->participants()->detach($this->getUser($user));
+        if ($this->participants->count() <= 2) {
+            throw CantRemoveUser::create('Impossible de supprimer l\'utilisateur car il faut être au mimnimum deux pour communiquer ;)');
+        }
+
+        return $this->participants()->detach(Galera::isValidUser($user));
     }
 
     public function close()

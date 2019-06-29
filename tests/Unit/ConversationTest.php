@@ -57,26 +57,23 @@ class ConversationTest extends TestCase
     /** @test */
     public function it_has_remove()
     {
-        $conversation = factory(GlrConversation::class)->create();
-        $conversation->add($this->user);
-        $conversation->remove($this->user);
-        $this->assertFalse($conversation->fresh()->hasUser($this->user));
+        $this->conversation->addMany([$this->user3, 4]);
+        $this->conversation->fresh()->remove($this->user);
+        $this->assertFalse($this->conversation->hasUser($this->user));
     }
 
     /** @test */
     public function it_has_close()
     {
-        $this->withoutExceptionHandling();
-        $conversation = factory(GlrConversation::class)->create();
-        $conversation->close();
-        $this->assertTrue($conversation->isClosed());
+        $this->conversation->close();
+        $this->assertTrue($this->conversation->isClosed());
     }
 
     /** @test */
     public function it_has_isClosed()
     {
-        $conversation = factory(GlrConversation::class)->create();
-        $conversation->close();
-        $this->assertTrue($conversation->isClosed());
+        $this->conversation->close();
+        $this->assertTrue($this->conversation->isClosed());
+        $this->assertDatabaseHas('glr_conversations', ['closed' => true]);
     }
 }

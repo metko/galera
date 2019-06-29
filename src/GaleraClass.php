@@ -6,6 +6,7 @@ use Tests\Models\User;
 use Illuminate\Support\Str;
 use Metko\Galera\Exceptions\UserDoesntExist;
 use Metko\Galera\Exceptions\InvalidUserInstance;
+use Metko\Galera\Exceptions\InsufisantParticipant;
 use Metko\Galera\Exceptions\ConversationInvalidType;
 use Metko\Galera\Exceptions\ConversationDoesntExists;
 
@@ -35,6 +36,7 @@ class GaleraClass
     public function create()
     {
         $this->conversation = GlrConversation::create($this->defaultConversation());
+
         if ($this->participants) {
             if (is_array($this->participants)) {
                 //dd($this->participants);
@@ -47,9 +49,21 @@ class GaleraClass
         return $this->conversation;
     }
 
-    public function addParticipants($participants)
+    public function addParticipants($participants, $second = null)
     {
-        $this->participants = $participants;
+        if (!$second && !is_array($participants)) {
+            throw InsufisantParticipant::create();
+        }
+
+        if (is_array($participants)) {
+            if (count($participants) < 2) {
+                throw InsufisantParticipant::create();
+            }
+            $this->participants = $participants;
+
+            return $this;
+        }
+        $this->participants = [$participants, $second];
 
         return $this;
     }
