@@ -3,6 +3,7 @@
 namespace Tests\Features;
 
 use Tests\TestCase;
+use Metko\Galera\Facades\Galera;
 use Metko\Galera\GlrConversation;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,12 +20,19 @@ class MessagesTest extends TestCase
     }
 
     /** @test */
-    public function a_user_can_send_message_in_a_conversations()
+    public function a_user_can_send_message_in_a_conversations_who_is_participant()
     {
-        $conversation = factory(GlrConversation::class)->create();
-        $message = 'test message';
-        $this->user->write($message, $conversation->id);
+        $conversation = Galera::addParticipants([1, 2])->create();
+        $this->user->write('test message', $conversation->id);
         $this->assertCount(1, $conversation->messages);
+    }
+
+    /** @test */
+    public function a_user_cant_write_in_a_conversation_that_is_not_participants_throw_exeption()
+    {
+        $conversation = Galera::addParticipants([1, 2])->create();
+        $this->user3->write('Hey', $conversation->id);
+        $this->assertCount(0, $conversation->messages);
     }
 
     /** @test */

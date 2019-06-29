@@ -31,9 +31,7 @@ class GlrConversation extends Model
     public function addMany(array $users)
     {
         $users = collect($users)->map(function ($user) {
-            $user = $this->getUser($user);
-
-            return $user->id;
+            return $this->getUser($user)->id;
         });
         //dd($users);
 
@@ -42,8 +40,7 @@ class GlrConversation extends Model
 
     public function getUser($user)
     {
-        $user = Galera::isValidUser($user);
-        if ($this->hasUser($user)) {
+        if ($this->hasUser($user = Galera::isValidUser($user))) {
             throw UserAlreadyInConversation::create($user->id);
         }
 
@@ -57,9 +54,7 @@ class GlrConversation extends Model
 
     public function remove($user)
     {
-        $user = Galera::isValidUser($user);
-
-        $this->participants()->detach($user);
+        $this->participants()->detach($this->getUser($user));
     }
 
     public function close()

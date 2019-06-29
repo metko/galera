@@ -2,10 +2,8 @@
 
 namespace Metko\Galera;
 
-use Illuminate\Support\Str;
+use Metko\Galera\Facades\Galera;
 use Metko\Galera\Exceptions\ConversationIsClosed;
-use Metko\Galera\Exceptions\ConversationInvalidType;
-use Metko\Galera\Exceptions\ConversationDoesntExists;
 
 trait Galerable
 {
@@ -16,36 +14,28 @@ trait Galerable
 
     public function write($message, $conversation)
     {
-        if (!$conversation instanceof GlrConversation) {
-            $conversation = $this->getConversation($conversation);
-        }
+        if ($this->canWrite($conversation)) {
+            //dd($conversation);
+            if (!is_array($message)) {
+                $message = ['message' => $message];
+            }
+            $conversation = Galera::getConversation($conversation);
 
+            return $conversation->messages()->create($message);
+        }
+    }
+
+    public function canWrite($conversation)
+    {
+        $conversation = Galera::getConversation($conversation);
         if ($conversation->isClosed()) {
             throw ConversationIsClosed::create($conversation->id);
         }
-        if (!is_array($message)) {
-            $message = ['message' => $message];
+
+        if (!$conversation->load('participants')->hasUser($this)) {
+            return false;
         }
 
-        return $conversation->messages()->create($message);
-    }
-
-    protected function getConversation($conversation)
-    {
-        $conversationData = $conversation;
-
-        if (is_numeric($conversation) || is_integer($conversation)) {
-            $conversation = GlrConversation::find($conversation);
-        } elseif (is_string($conversation)) {
-            $name = Str::slug($conversation);
-            $conversation = GlrConversation::wshereSlug($name)->first();
-        } else {
-            throw  ConversationInvalidType::create($conversationData);
-        }
-        if (!$conversation) {
-            throw  ConversationDoesntExists::create($conversationData);
-        }
-
-        return $conversation;
+        return true;
     }
 }

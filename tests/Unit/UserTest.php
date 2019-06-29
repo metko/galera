@@ -4,7 +4,7 @@ namespace Tests\Features;
 
 use Tests\TestCase;
 use Metko\Galera\GlrMessage;
-use Metko\Galera\GlrConversation;
+use Metko\Galera\Facades\Galera;
 
 class UserTest extends TestCase
 {
@@ -16,10 +16,10 @@ class UserTest extends TestCase
     /** @test */
     public function it_has_write()
     {
-        $conversation = factory(GlrConversation::class)->create();
+        $conversation = Galera::addParticipants([1, 2])->create();
         $message = factory(GlrMessage::class)->raw();
         $this->user->write($message, $conversation);
-        $this->assertCount(1, $conversation->messages);
+        $this->assertCount(1, $conversation->fresh()->messages);
         $this->assertDatabaseHas('glr_messages', $message);
     }
 }
