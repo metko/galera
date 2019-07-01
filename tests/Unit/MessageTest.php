@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use Tests\Models\User;
+use Illuminate\Support\Str;
 use Metko\Galera\GlrMessage;
 use Metko\Galera\GlrConversation;
 
@@ -17,7 +18,7 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_isResponse()
     {
-        $message = factory(GlrMessage::class)->create(['reffer_to' => 1, 'conversation_id' => 1, 'owner_id' => $this->user->id]);
+        $message = factory(GlrMessage::class)->create(['reffer_to' => 1, 'conversation_id' => 1, 'owner_id' => $this->user->id, 'id' => Str::uuid()]);
         $this->assertTrue($message->isResponse());
     }
 

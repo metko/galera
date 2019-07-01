@@ -32,16 +32,6 @@ class ConversationsTest extends TestCase
     }
 
     /** @test */
-    public function a_conversation_can_have_subject_and_description()
-    {
-        $attr = [
-            'subject' => 'Subject of the conversation',
-            'description' => 'Description of the conversation',
-        ];
-        $conversation = Galera::conversation(1);
-    }
-
-    /** @test */
     public function create_with_less_of_2_participants_will_throw_an_exception()
     {
         $this->expectException(InsufisantParticipant::class);
@@ -70,6 +60,29 @@ class ConversationsTest extends TestCase
         $conversation = Galera::participants([1, 2, 3])->make();
         $conversation->fresh()->remove($this->user2);
         $this->assertCount(2, $conversation->fresh()->participants);
+    }
+
+    /** @test */
+    public function a_conversation_can_send_a_message_in_a_conversation()
+    {
+        Galera::from(1)->to(2)->in($this->conversation)->send('Hello');
+
+        $this->assertCount(1, $this->conversation->fresh()->messages);
+    }
+
+    /** @test */
+    public function a_conversation_can_send_a_message_and_create_a_new_one()
+    {
+        $conversation = Galera::from(2)->to(3)->send('Hello');
+        $this->assertCount(1, $conversation->fresh()->messages);
+        $this->assertCount(2, GlrConversation::all());
+    }
+
+    /** @test */
+    public function a_conversation_can_be_deleted()
+    {
+        Galera::conversation(1)->delete();
+        $this->assertCount(0, GlrConversation::all());
     }
 
     /** @test */

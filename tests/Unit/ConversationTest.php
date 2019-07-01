@@ -4,7 +4,9 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use Tests\Models\User;
+use Illuminate\Support\Str;
 use Metko\Galera\GlrMessage;
+use Metko\Galera\Facades\Galera;
 use Metko\Galera\GlrConversation;
 
 class ConversationTest extends TestCase
@@ -12,6 +14,21 @@ class ConversationTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
+    }
+
+    /** @test */
+    public function it_can_have_subject_and_description()
+    {
+        $attr = [
+            'subject' => 'Subject of the conversation',
+            'description' => 'Description of the conversation',
+        ];
+        $conversation = Galera::participants(1, 2)
+                        ->subject($attr['subject'])
+                        ->description($attr['description'])
+                        ->make();
+
+        $this->assertSame($conversation->description, $attr['description']);
     }
 
     /** @test */
@@ -26,7 +43,7 @@ class ConversationTest extends TestCase
     public function it_has_messages()
     {
         $conversation = factory(GlrConversation::class)->create();
-        $message = factory(GlrMessage::class)->create(['conversation_id' => $conversation->id, 'owner_id' => $this->user->id]);
+        $message = factory(GlrMessage::class)->create(['conversation_id' => $conversation->id, 'owner_id' => $this->user->id, 'id' => Str::uuid()]);
         $this->assertTrue($conversation->fresh()->messages->first()->is($message));
     }
 

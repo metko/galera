@@ -4,7 +4,7 @@ namespace Metko\Galera;
 
 use Illuminate\Support\Str;
 use Metko\Galera\Facades\Galera;
-use Metko\Galera\Events\MessageSent;
+use Metko\Galera\Events\MessageWasSent;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Metko\Galera\Exceptions\UnauthorizedConversation;
 use Metko\Galera\Exceptions\MessageDoesntBelongsToConversation;
@@ -39,7 +39,7 @@ trait Galerable
             $message['owner_id'] = $this->id;
             $message = $conversation->messages()->create($message);
 
-            event(new MessageSent($message));
+            event(new MessageWasSent($message));
         } else {
             throw UnauthorizedConversation::create();
         }

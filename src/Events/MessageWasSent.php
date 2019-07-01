@@ -7,7 +7,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 
-class MessageSent
+class MessageWasSent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $message;

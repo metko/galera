@@ -2,7 +2,6 @@
 
 namespace Metko\Galera;
 
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -11,18 +10,19 @@ class GlrMessage extends Model
     use SoftDeletes;
 
     protected $guarded = [];
+
     public $incrementing = false;
+
     public $casts = [
         'id' => 'string',
+    ];
+    protected $touch = [
+        'conversation',
     ];
 
     public static function boot()
     {
         parent::boot();
-
-        static::creating(function ($message) {
-            $message->id = Str::uuid();
-        });
     }
 
     public function __construct(array $attributes = [])

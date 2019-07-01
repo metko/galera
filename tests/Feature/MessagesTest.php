@@ -6,8 +6,8 @@ use Tests\TestCase;
 use Metko\Galera\GlrMessage;
 use Metko\Galera\Facades\Galera;
 use Metko\Galera\GlrConversation;
-use Metko\Galera\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
+use Metko\Galera\Events\MessageWasSent;
 use Metko\Galera\Exceptions\MessageDoesntExist;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,7 +48,7 @@ class MessagesTest extends TestCase
         Event::fake();
         $this->user->write('test message', $this->conversation->id);
         $message = GlrMessage::all()->last();
-        Event::assertDispatched(MessageSent::class, function ($event) use ($message) {
+        Event::assertDispatched(MessageWasSent::class, function ($event) use ($message) {
             return $event->message->id === $message->id;
         });
     }

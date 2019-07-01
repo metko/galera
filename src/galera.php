@@ -2,7 +2,6 @@
 
 namespace Metko\Galera;
 
-use Illuminate\Support\Str;
 use Metko\Galera\Exceptions\UserDoesntExist;
 use Metko\Galera\Exceptions\MessageDoesntExist;
 use Metko\Galera\Exceptions\MessageInvalidType;
@@ -84,6 +83,8 @@ class Galera
     {
         return [
             'closed' => $this->closed,
+            'subject' => $this->subject ?? '',
+            'description' => $this->description ?? '',
         ];
     }
 
@@ -96,7 +97,6 @@ class Galera
         if (is_numeric($conversation) || is_integer($conversation)) {
             $conversation = GlrConversation::find($conversation);
         } elseif (is_string($conversation)) {
-            $name = Str::slug($conversation);
             $conversation = GlrConversation::wshereSlug($name)->first();
         } else {
             throw  ConversationInvalidType::create($conversationData);
@@ -129,5 +129,61 @@ class Galera
     public function messageBelongsToConversation($message, $conversation)
     {
         return $conversation->messages->contains('id', $message->id);
+    }
+
+    public function subject($subject)
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
+
+    public function description($description)
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function from($user)
+    {
+        if ($user = $this->isValidUser($user)) {
+            $this->from = $user;
+        }
+
+        return $this;
+    }
+
+    public function to($user)
+    {
+        if ($user = $this->isValidUser($user)) {
+            $this->to = $user;
+        }
+
+        return $this;
+    }
+
+    public function in($conversation)
+    {
+        if ($conversation = $this->conversation($conversation)) {
+            $this->conversation = $conversation;
+        }
+
+        return $this;
+    }
+
+    public function send($message)
+    {
+        $this->conversation->load('participants');
+        //dd($this->conversation);
+        if (!empty($this->conversation) && $this->conversation->hasUser($this->to)) {
+            return $this->from->write($message, $this->conversation);
+        }
+
+        $this->conversation = self::participants($this->from, $this->to)->make();
+
+        $this->from->write($message, $this->conversation);
+
+        return $this->conversation;
     }
 }
