@@ -77,7 +77,7 @@ class GaleraClass
         ];
     }
 
-    public function getConversation($conversation)
+    public function conversation($conversation)
     {
         $conversationData = $conversation;
         if ($conversation instanceof GlrConversation) {
@@ -98,7 +98,7 @@ class GaleraClass
         return $conversation;
     }
 
-    public function getMessage($message)
+    public function message($message)
     {
         if (is_numeric($message) || is_integer($message)) {
             $messageId = $message;

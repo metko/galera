@@ -6,10 +6,13 @@ use Tests\Models\User;
 use Metko\Galera\Facades\Galera;
 use Illuminate\Database\Eloquent\Model;
 use Metko\Galera\Exceptions\CantRemoveUser;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Metko\Galera\Exceptions\UserAlreadyInConversation;
 
 class GlrConversation extends Model
 {
+    use SoftDeletes;
+
     protected $guarded = [];
 
     public function messages()
@@ -69,5 +72,10 @@ class GlrConversation extends Model
     public function isClosed()
     {
         return $this->closed;
+    }
+
+    public function clear()
+    {
+        return GlrMessage::where('conversation_id', $this->id)->delete();
     }
 }

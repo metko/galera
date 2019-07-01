@@ -22,6 +22,15 @@ class ConversationsTest extends TestCase
     }
 
     /** @test */
+    public function retreive_a_conversation()
+    {
+        $conversation = Galera::conversation(1);
+        $this->assertTrue($this->conversation->is($conversation));
+        $conversation = Galera::conversation($this->conversation);
+        $this->assertTrue($this->conversation->is($conversation));
+    }
+
+    /** @test */
     public function create_with_less_of_2_participants_will_throw_an_exception()
     {
         $this->expectException(InsufisantParticipant::class);
@@ -50,6 +59,16 @@ class ConversationsTest extends TestCase
         $conversation = Galera::addParticipants([1, 2, 3])->create();
         $conversation->fresh()->remove($this->user2);
         $this->assertCount(2, $conversation->fresh()->participants);
+    }
+
+    /** @test */
+    public function a_conversation_can_clear_all_his_message()
+    {
+        $this->user->write('Message', $this->conversation->id);
+        $this->user2->write('Message', $this->conversation->id);
+        $this->user->write('Message', $this->conversation->id);
+        $this->conversation->fresh()->clear();
+        $this->assertCount(0, $this->conversation->fresh()->messages);
     }
 
     /** @test */

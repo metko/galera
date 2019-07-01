@@ -4,9 +4,11 @@ namespace Metko\Galera;
 
 use Tests\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GlrMessage extends Model
 {
+    use SoftDeletes;
     protected $guarded = [];
 
     public function isResponse()

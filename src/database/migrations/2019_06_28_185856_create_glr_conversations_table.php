@@ -14,6 +14,7 @@ class CreateGlrConversationsTable extends Migration
         Schema::create('glr_conversations', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->boolean('closed');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

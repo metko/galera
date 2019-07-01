@@ -23,16 +23,17 @@ trait Galerable
                 $message = ['message' => $message];
             }
 
-            $conversation = Galera::getConversation($conversation);
+            $conversation = Galera::conversation($conversation);
 
             if ($response_to) {
-                $reffer = Galera::getMessage($response_to);
+                $reffer = Galera::message($response_to);
 
                 if (!Galera::messageBelongsToConversation($reffer, $conversation)) {
                     throw MessageDoesntBelongsToConversation::create($reffer->id);
                 }
                 $message['reffer_to'] = $reffer->id;
             }
+
             $message['owner_id'] = $this->id;
             $message = $conversation->messages()->create($message);
             event(new MessageSent($message));
@@ -47,7 +48,7 @@ trait Galerable
 
     public function canWrite($conversation)
     {
-        $conversation = Galera::getConversation($conversation);
+        $conversation = Galera::conversation($conversation);
         if ($conversation->isClosed()) {
             throw ConversationIsClosed::create($conversation->id);
         }

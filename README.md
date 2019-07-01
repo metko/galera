@@ -1,38 +1,59 @@
-# laravel-package-ready
+# galera
 
-Hey!Boilerplate for Laravel packages. Use it as a starting point for your own Laravel packages.
+Galera is small package to handle conversation between two or multiple user.
 
-Includes PHPUnit and PHPCodeSniffer configuration, as well as a known good Travis CI configuration and a couple of base test cases. Uses `orchestra/testbench` as the basis of the provided base test.
-
-Also includes my [Artisan Standalone](https://github.com/matthewbdaly/artisan-standalone) package as a development dependency. As a result, you should be able to run Artisan commands as follows:
-
-```bash
-vendor/bin/artisan make:model Example
-```
-
-How do I use it?
+Installations
 ----------------
 ###### Step 1
 ```bash
-composer create-project metko/laravel-package-ready <YOUR_NEW_PACKAGE_DIRECTORY>
+composer require metko/galera 
 ```
 
-This will generate a starting boilerplate for your app.
-
 ###### Step 2
-You'll want to update your `composer.json` with your required namespace and other details - you can do this by running
+Publish the config file and the asset 
 ```bash
- vendor/bin/artisan app:name InsertYourProjectNameHere
+php artisan pusblish --tag:galera
  ```
+
+How to use it
+----------------
+
+###### Create a conversation
+```php
+Galera::addParticipants($user1, $user2)->make();
+// Or pass an array of multiple user
+Galera::addParticipants([1,2,3,"10"])->make();
+```
+
+###### Get a conversation 
+```php
+Galera::conversation(1);
+//Or get by title slugged
+Galera::conversation('My conversation'); // automatically becomes 'my-conversation'
+```
+
+###### Clear a conversation
+```php
+Galera::conversation(1)->clear();
+```
+
+###### Write a messsage
+```php
+$user->write('My message', $conversation); // You can pass a model or an id for the conversation param
+```
+
+###### Write a messsage reffering another
+```php
+$user->write('My message', $conversation, $message->id); // You can pass a model or an id for the message param
+```
+
+###### Get a messsage
+```php
+Galera::messages(1); 
+```
 
 Test cases
 ----------
-###### Facades
-Update the CreateApplication.php and set the name of the facade you want to use
-
-```php
- 'FacadeName' => 'Package\Facades\Facade',
- ```
  
 The package includes three test cases:
 

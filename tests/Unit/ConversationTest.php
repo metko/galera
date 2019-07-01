@@ -76,4 +76,14 @@ class ConversationTest extends TestCase
         $this->assertTrue($this->conversation->isClosed());
         $this->assertDatabaseHas('glr_conversations', ['closed' => true]);
     }
+
+    /** @test */
+    public function it_has_clear()
+    {
+        $this->user->write('Message', $this->conversation->id);
+        $this->user2->write('Message', $this->conversation->id);
+        $this->user->write('Message', $this->conversation->id);
+        $this->conversation->fresh()->clear();
+        $this->assertCount(0, $this->conversation->fresh()->messages);
+    }
 }
