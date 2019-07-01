@@ -39,14 +39,16 @@ class Galera
         return $user;
     }
 
-    public function test()
-    {
-        return $this->participants;
-    }
-
     public function make()
     {
         $this->conversation = GlrConversation::create($this->defaultConversation());
+        $this->addParticipants();
+
+        return $this->conversation;
+    }
+
+    protected function addParticipants()
+    {
         if ($this->participants) {
             if (is_array($this->participants)) {
                 $this->conversation->addMany($this->participants);
@@ -57,8 +59,6 @@ class Galera
         } else {
             throw InsufisantParticipant::create();
         }
-
-        return $this->conversation;
     }
 
     public function participants($participants, $second = null)
@@ -110,13 +110,15 @@ class Galera
 
     public function message($message)
     {
-        if (is_numeric($message) || is_integer($message)) {
-            $messageId = $message;
-            $message = GlrMessage::whereId($message)->first();
-            if (!$message) {
-                throw MessageDoesntExist::create($messageId);
-            }
+        if ($message instanceof GlrMessage) {
+            return $message;
         }
+        $messageId = $message;
+        $message = GlrMessage::whereId($message)->first();
+        if (!$message) {
+            throw MessageDoesntExist::create($messageId);
+        }
+
         if (!$message instanceof GlrMessage) {
             throw MessageInvalidType::create();
         }

@@ -9,5 +9,5 @@ return [
       /*
       /* Table prefix, leave empty for null
       */
-      'table_prefix' => 'glrdd_',
+      'table_prefix' => 'glr_',
 ];

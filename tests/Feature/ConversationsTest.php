@@ -3,6 +3,7 @@
 namespace Tests\Features;
 
 use Tests\TestCase;
+use Metko\Galera\GlrMessage;
 use Metko\Galera\Facades\Galera;
 use Metko\Galera\GlrConversation;
 use Metko\Galera\Exceptions\CantRemoveUser;
@@ -28,6 +29,16 @@ class ConversationsTest extends TestCase
         $this->assertTrue($this->conversation->is($conversation));
         $conversation = Galera::conversation($this->conversation);
         $this->assertTrue($this->conversation->is($conversation));
+    }
+
+    /** @test */
+    public function a_conversation_can_have_subject_and_description()
+    {
+        $attr = [
+            'subject' => 'Subject of the conversation',
+            'description' => 'Description of the conversation',
+        ];
+        $conversation = Galera::conversation(1);
     }
 
     /** @test */
@@ -68,6 +79,15 @@ class ConversationsTest extends TestCase
         $this->user2->write('Message', $this->conversation->id);
         $this->user->write('Message', $this->conversation->id);
         $this->conversation->fresh()->clear();
+        $this->assertCount(0, $this->conversation->fresh()->messages);
+    }
+
+    /** @test */
+    public function a_conversation_can_delete_a_message()
+    {
+        $this->user->write('Message', $this->conversation->id);
+        $message = GlrMessage::all()->last();
+        Galera::message($message->id)->delete();
         $this->assertCount(0, $this->conversation->fresh()->messages);
     }
 

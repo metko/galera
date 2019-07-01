@@ -9,7 +9,6 @@ use Metko\Galera\GlrConversation;
 use Metko\Galera\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
 use Metko\Galera\Exceptions\MessageDoesntExist;
-use Metko\Galera\Exceptions\MessageInvalidType;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Metko\Galera\Exceptions\ConversationInvalidType;
@@ -76,7 +75,7 @@ class MessagesTest extends TestCase
     /** @test */
     public function reffering_a_message_with_an_invalid_type_throw_exception()
     {
-        $this->expectException(MessageInvalidType::class);
+        $this->expectException(MessageDoesntExist::class);
         $this->user->write('test message', $this->conversation->id);
         $this->user2->write('response message', $this->conversation->id, new GlrConversation());
     }

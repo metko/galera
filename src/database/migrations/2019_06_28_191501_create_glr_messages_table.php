@@ -20,7 +20,7 @@ class CreateGlrMessagesTable extends Migration
     public function up()
     {
         Schema::create($this->tableName, function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->uuid('id')->primary();
             $table->text('message');
             $table->unsignedBigInteger('owner_id');
             $table->unsignedBigInteger('conversation_id');
