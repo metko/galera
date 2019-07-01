@@ -175,7 +175,6 @@ class Galera
     public function send($message)
     {
         $this->conversation->load('participants');
-        //dd($this->conversation);
         if (!empty($this->conversation) && $this->conversation->hasUser($this->to)) {
             return $this->from->write($message, $this->conversation);
         }
@@ -185,5 +184,12 @@ class Galera
         $this->from->write($message, $this->conversation);
 
         return $this->conversation;
+    }
+
+    public function hasNotification($user, $message)
+    {
+        return GlrMessageNotification::where('to_user_id', $user->id)
+                ->where('conversation_id', $message->conversation_id)
+                ->first();
     }
 }

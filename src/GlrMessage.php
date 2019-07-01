@@ -50,4 +50,28 @@ class GlrMessage extends Model
     {
         return $this->belongsTo(GlrConversation::class);
     }
+
+    public function isRead()
+    {
+        foreach ($this->status as $status) {
+            if (!$status->read_at) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function status()
+    {
+        // Le message X sur la table notification est-il lu pour les utilisateur de la conversation
+        return $this->hasMany(GlrMessageNotification::class, 'message_id');
+    }
+
+    public function markAsRead()
+    {
+        // Le message X sur la table notification est-il lu pour les utilisateur de la conversation
+        return GlrMessageNotification::where('message_id', $this->id)
+          ->update(['read_at' => now()]);
+    }
 }

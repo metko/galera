@@ -6,12 +6,8 @@ use Tests\TestCase;
 use Metko\Galera\GlrMessage;
 use Metko\Galera\Facades\Galera;
 use Metko\Galera\GlrConversation;
-use Metko\Galera\Exceptions\CantRemoveUser;
-use Metko\Galera\Exceptions\UserDoesntExist;
-use Metko\Galera\Exceptions\InvalidUserInstance;
+use Metko\Galera\Exceptions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Metko\Galera\Exceptions\InsufisantParticipant;
-use Metko\Galera\Exceptions\UserAlreadyInConversation;
 
 class ConversationsTest extends TestCase
 {
@@ -34,7 +30,7 @@ class ConversationsTest extends TestCase
     /** @test */
     public function create_with_less_of_2_participants_will_throw_an_exception()
     {
-        $this->expectException(InsufisantParticipant::class);
+        $this->expectException(Exceptions\InsufisantParticipant::class);
         $conversation = Galera::make();
     }
 
@@ -107,7 +103,7 @@ class ConversationsTest extends TestCase
     /** @test */
     public function remove_participants_of_conversation_of_2_will_throw_exception()
     {
-        $this->expectException(CantRemoveUser::class);
+        $this->expectException(Exceptions\CantRemoveUser::class);
         $conversation = Galera::participants(1, 2)->make();
         $conversation->remove($this->user2);
     }
@@ -116,7 +112,7 @@ class ConversationsTest extends TestCase
     public function remove_participant_who_doesnt_exist_throw_a_execption()
     {
         $this->conversation->add(3);
-        $this->expectException(UserDoesntExist::class);
+        $this->expectException(Exceptions\UserDoesntExist::class);
         $this->conversation->fresh()->remove(10);
     }
 
@@ -124,42 +120,42 @@ class ConversationsTest extends TestCase
     public function remove_participants_that_is_not_intance_of_user_will_throw_exception()
     {
         $this->conversation->add(3);
-        $this->expectException(InvalidUserInstance::class);
+        $this->expectException(Exceptions\InvalidUserInstance::class);
         $this->conversation->fresh()->remove(new GlrConversation());
     }
 
     /** @test */
     public function add_user_that_doesnt_exist_thrown_exeption()
     {
-        $this->expectException(UserDoesntExist::class);
+        $this->expectException(Exceptions\UserDoesntExist::class);
         $this->conversation->add(5);
     }
 
     /** @test */
     public function add_user_that_is_already_in_the_conversation_throw_exeption()
     {
-        $this->expectException(UserAlreadyInConversation::class);
+        $this->expectException(Exceptions\UserAlreadyInConversation::class);
         $this->conversation->fresh()->add($this->user2);
     }
 
     /** @test */
     public function add_user_that_is_not_user_class_throw_exeption()
     {
-        $this->expectException(InvalidUserInstance::class);
+        $this->expectException(Exceptions\InvalidUserInstance::class);
         $this->conversation->add(new GlrConversation());
     }
 
     /** @test */
     public function create_conversation_with_invalid_user_type_will_throw_exeption()
     {
-        $this->expectException(InvalidUserInstance::class);
+        $this->expectException(Exceptions\InvalidUserInstance::class);
         Galera::participants(new GlrConversation(), 2)->make();
     }
 
     /** @test */
     public function create_conversation_with_inexistant_user_type_will_throw_exeption()
     {
-        $this->expectException(UserDoesntExist::class);
+        $this->expectException(Exceptions\UserDoesntExist::class);
         Galera::participants(5, 1)->make();
     }
 }

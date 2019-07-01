@@ -26,23 +26,6 @@ class MessagesTest extends TestCase
     }
 
     /** @test */
-    public function a_user_can_send_message_in_a_conversations_who_is_participant()
-    {
-        $this->user->write('test message', $this->conversation->id);
-        $this->assertCount(1, $this->conversation->messages);
-    }
-
-    /** @test */
-    public function a_user_can_send_message_while_reffering_another()
-    {
-        $this->user->write('test message', $this->conversation->id);
-        $message1 = GlrMessage::all()->last();
-        $this->user2->write('response message', $this->conversation->id, $message1->id);
-        $message2 = GlrMessage::all()->last();
-        $this->assertTrue($message2->isResponse());
-    }
-
-    /** @test */
     public function sending_a_message_fire_an_event()
     {
         Event::fake();
@@ -51,6 +34,33 @@ class MessagesTest extends TestCase
         Event::assertDispatched(MessageWasSent::class, function ($event) use ($message) {
             return $event->message->id === $message->id;
         });
+    }
+
+    /** @test */
+    public function a_new_message_is_by_default_not_read()
+    {
+        $this->user->write('test message', $this->conversation->id);
+        $this->assertFalse($this->conversation->messages->first()->isRead());
+    }
+
+    /** @test */
+    public function a_new_message_is_by_default_not_read_by_all_user_except_expeditor()
+    {
+        $this->conversation->add($this->user3);
+        $this->user->write('test message', $this->conversation->id);
+        $message = $this->conversation->messages->first();
+        $this->assertFalse($message->isRead());
+        $this->assertCount(2, $message->status);
+        $this->assertFalse($message->status->contains('to_user_id', $this->user->id));
+    }
+
+    /** @test */
+    public function a_message_can_be_mark_as_read()
+    {
+        $this->user->write('test message', $this->conversation->id);
+        $message = $this->conversation->messages->first();
+        $message->markAsRead();
+        $this->assertTrue($message->isRead());
     }
 
     /** @test */

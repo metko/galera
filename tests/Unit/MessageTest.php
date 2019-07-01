@@ -7,6 +7,7 @@ use Tests\Models\User;
 use Illuminate\Support\Str;
 use Metko\Galera\GlrMessage;
 use Metko\Galera\GlrConversation;
+use Metko\Galera\GlrMessageNotification;
 
 class MessageTest extends TestCase
 {
@@ -49,5 +50,31 @@ class MessageTest extends TestCase
         $message = GlrMessage::all()->last();
         $this->assertInstanceOf(GlrConversation::class, $message->conversation);
         $this->assertTrue($message->conversation->is($this->conversation));
+    }
+
+    /** @test */
+    public function it_has_isRead()
+    {
+        $this->user->write('message', $this->conversation);
+        $message = $this->conversation->messages->first();
+        $this->assertFalse($message->isRead());
+    }
+
+    /** @test */
+    public function it_has_markAsRead()
+    {
+        $now = now();
+        $this->user->write('test message', $this->conversation->id);
+        $message = $this->conversation->messages->first();
+        $message->markAsRead();
+        $this->assertTrue($message->status->first()->read_at == now());
+    }
+
+    /** @test */
+    public function it_has_status()
+    {
+        $this->user->write('message', $this->conversation);
+        $message = $this->conversation->messages->first();
+        $this->assertInstanceOf(GlrMessageNotification::class, $message->status->first());
     }
 }
