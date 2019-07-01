@@ -18,6 +18,6 @@ class UserTest extends TestCase
         $message = factory(GlrMessage::class)->raw();
         $this->user->write($message, $this->conversation);
         $this->assertCount(1, $this->conversation->fresh()->messages);
-        $this->assertDatabaseHas('glr_messages', $message);
+        $this->assertDatabaseHas(config('galera.table_prefix').'messages', $message);
     }
 }

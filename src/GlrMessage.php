@@ -2,7 +2,6 @@
 
 namespace Metko\Galera;
 
-use Tests\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -12,6 +11,12 @@ class GlrMessage extends Model
 
     protected $guarded = [];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->table = config('galera.table_prefix').'messages';
+    }
+
     public function isResponse()
     {
         return  !empty($this->reffer_to);
@@ -19,12 +24,12 @@ class GlrMessage extends Model
 
     public function reffer()
     {
-        return $this->hasOne('Metko\Galera\GlrMessage', 'id', 'reffer_to');
+        return $this->hasOne(GlrMessage::class, 'id', 'reffer_to');
     }
 
     public function owner()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(config('galera.user_class'));
     }
 
     public function conversation()

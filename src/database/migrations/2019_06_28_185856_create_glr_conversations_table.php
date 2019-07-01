@@ -6,12 +6,17 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreateGlrConversationsTable extends Migration
 {
+    public function __construct()
+    {
+        $this->tableName = config('galera.table_prefix').'conversations';
+    }
+
     /**
      * Run the migrations.
      */
     public function up()
     {
-        Schema::create('glr_conversations', function (Blueprint $table) {
+        Schema::create($this->tableName, function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->boolean('closed');
             $table->softDeletes();
@@ -24,6 +29,6 @@ class CreateGlrConversationsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('conversations');
+        Schema::dropIfExists($this->tableName);
     }
 }

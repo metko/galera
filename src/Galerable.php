@@ -12,7 +12,7 @@ trait Galerable
 {
     public function conversations()
     {
-        return $this->belongsToMany(GlrConversation::class, 'glr_conversation_user', 'user_id', 'conversation_id');
+        return $this->belongsToMany(GlrConversation::class, config('galera.table_prefix').'conversation_user', 'user_id', 'conversation_id');
     }
 
     public function write($message, $conversation, $response_to = null)

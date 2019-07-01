@@ -2,7 +2,6 @@
 
 namespace Metko\Galera;
 
-use Tests\Models\User;
 use Metko\Galera\Facades\Galera;
 use Illuminate\Database\Eloquent\Model;
 use Metko\Galera\Exceptions\CantRemoveUser;
@@ -15,6 +14,12 @@ class GlrConversation extends Model
 
     protected $guarded = [];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->table = config('galera.table_prefix').'conversations';
+    }
+
     public function messages()
     {
         return $this->hasMany(GlrMessage::class, 'conversation_id');
@@ -22,7 +27,7 @@ class GlrConversation extends Model
 
     public function participants()
     {
-        return $this->belongsToMany(User::class, 'glr_conversation_user', 'conversation_id', 'user_id');
+        return $this->belongsToMany(config('galera.user_class'), config('galera.table_prefix').'conversation_user', 'conversation_id', 'user_id');
     }
 
     public function add($user)

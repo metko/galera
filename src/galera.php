@@ -2,7 +2,6 @@
 
 namespace Metko\Galera;
 
-use Tests\Models\User;
 use Illuminate\Support\Str;
 use Metko\Galera\Exceptions\UserDoesntExist;
 use Metko\Galera\Exceptions\MessageDoesntExist;
@@ -12,21 +11,26 @@ use Metko\Galera\Exceptions\InsufisantParticipant;
 use Metko\Galera\Exceptions\ConversationInvalidType;
 use Metko\Galera\Exceptions\ConversationDoesntExists;
 
-class galera
+class Galera
 {
     public $participants;
     public $conversation;
     public $closed = false;
 
+    public function __construct()
+    {
+        $this->userInstance = config('galera.user_class');
+    }
+
     public function isValidUser($user)
     {
-        if (is_object($user) && !$user instanceof User) {
+        if (is_object($user) && !$user instanceof $this->userInstance) {
             throw InvalidUserInstance::create($user);
         }
 
-        if (!$user instanceof User) {
+        if (!$user instanceof $this->userInstance) {
             if (is_numeric($user) || is_integer($user)) {
-                if (!$user = User::whereId($user)->first()) {
+                if (!$user = $this->userInstance::whereId($user)->first()) {
                     throw UserDoesntExist::create($user);
                 }
             }
@@ -43,10 +47,8 @@ class galera
     public function make()
     {
         $this->conversation = GlrConversation::create($this->defaultConversation());
-
         if ($this->participants) {
             if (is_array($this->participants)) {
-                //dd($this->participants);
                 $this->conversation->addMany($this->participants);
             } else {
                 $this->conversation->add($this->participants);

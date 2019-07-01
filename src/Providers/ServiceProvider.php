@@ -2,6 +2,8 @@
 
 namespace Metko\Galera\Providers;
 
+use Metko\Galera\Galera;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 
 /**
@@ -14,11 +16,16 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadRoutesFrom(dirname(dirname(__DIR__)).'/routes/routes.php');
-        $this->loadViewsFrom(__DIR__.'/../views', 'packagename');
+        $src = dirname(__DIR__).'/';
+        //dd($src.'config/galera.php');
         $this->publishes([
-            __DIR__.'/../views', resource_path('views/vendor/packagename'),
+            $src.'config/galera.php' => config_path('galera.php'),
+        ], 'config');
+        $this->loadMigrationsFrom($src.'database/migrations');
+        $this->loadRoutesFrom(dirname($src).'/routes/routes.php');
+        $this->loadViewsFrom($src.'/views', 'galera');
+        $this->publishes([
+            $src.'views', resource_path('views/vendor/galera'),
         ]);
     }
 
@@ -27,12 +34,13 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
-        $this->app->singleton("Galera\User", function ($app) {
-            if (app()->environment() == 'testing') {
-                return new \Metko\Galera\Tests\User();
-            }
-
-            //return new $config['user']();
+        if (app()->environment() == 'testing') {
+            $config = require dirname(__DIR__).'/config/galera.php';
+            config(['galera' => $config]);
+            config(['galera.user_class' => "Tests\Models\User"]);
+        }
+        $this->app->singleton('galera', function () {
+            return new Galera();
         });
     }
 }

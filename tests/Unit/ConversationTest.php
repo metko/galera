@@ -74,7 +74,7 @@ class ConversationTest extends TestCase
     {
         $this->conversation->close();
         $this->assertTrue($this->conversation->isClosed());
-        $this->assertDatabaseHas('glr_conversations', ['closed' => true]);
+        $this->assertDatabaseHas(config('galera.table_prefix').'conversations', ['closed' => true]);
     }
 
     /** @test */
