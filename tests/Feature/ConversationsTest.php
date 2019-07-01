@@ -34,13 +34,13 @@ class ConversationsTest extends TestCase
     public function create_with_less_of_2_participants_will_throw_an_exception()
     {
         $this->expectException(InsufisantParticipant::class);
-        $conversation = Galera::addParticipants($this->user)->create();
+        $conversation = Galera::make();
     }
 
     /** @test */
     public function a_conversation_can_add_a_user()
     {
-        $conversation = Galera::addParticipants($this->user, 3)->create();
+        $conversation = Galera::participants($this->user, 3)->make();
         $conversation->fresh()->add(2);
         $this->assertCount(3, $conversation->fresh()->participants);
     }
@@ -48,7 +48,7 @@ class ConversationsTest extends TestCase
     /** @test */
     public function a_conversation_can_add_multiple_users_at_the_same_time()
     {
-        $conversation = Galera::addParticipants(1, 2)->create();
+        $conversation = Galera::participants(1, 2)->make();
         $conversation->addMany([$this->user3, '4']);
         $this->assertCount(4, $conversation->fresh()->participants);
     }
@@ -56,7 +56,7 @@ class ConversationsTest extends TestCase
     /** @test */
     public function a_conversation_can_remove_a_participant()
     {
-        $conversation = Galera::addParticipants([1, 2, 3])->create();
+        $conversation = Galera::participants([1, 2, 3])->make();
         $conversation->fresh()->remove($this->user2);
         $this->assertCount(2, $conversation->fresh()->participants);
     }
@@ -75,7 +75,7 @@ class ConversationsTest extends TestCase
     public function remove_participants_of_conversation_of_2_will_throw_exception()
     {
         $this->expectException(CantRemoveUser::class);
-        $conversation = Galera::addParticipants(1, 2)->create();
+        $conversation = Galera::participants(1, 2)->make();
         $conversation->remove($this->user2);
     }
 
@@ -120,13 +120,13 @@ class ConversationsTest extends TestCase
     public function create_conversation_with_invalid_user_type_will_throw_exeption()
     {
         $this->expectException(InvalidUserInstance::class);
-        Galera::addParticipants(new GlrConversation(), 2)->create();
+        Galera::participants(new GlrConversation(), 2)->make();
     }
 
     /** @test */
     public function create_conversation_with_inexistant_user_type_will_throw_exeption()
     {
         $this->expectException(UserDoesntExist::class);
-        Galera::addParticipants(5, 1)->create();
+        Galera::participants(5, 1)->make();
     }
 }

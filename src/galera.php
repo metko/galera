@@ -12,7 +12,7 @@ use Metko\Galera\Exceptions\InsufisantParticipant;
 use Metko\Galera\Exceptions\ConversationInvalidType;
 use Metko\Galera\Exceptions\ConversationDoesntExists;
 
-class GaleraClass
+class galera
 {
     public $participants;
     public $conversation;
@@ -35,7 +35,12 @@ class GaleraClass
         return $user;
     }
 
-    public function create()
+    public function test()
+    {
+        return $this->participants;
+    }
+
+    public function make()
     {
         $this->conversation = GlrConversation::create($this->defaultConversation());
 
@@ -46,12 +51,15 @@ class GaleraClass
             } else {
                 $this->conversation->add($this->participants);
             }
+            $this->participants = null;
+        } else {
+            throw InsufisantParticipant::create();
         }
 
         return $this->conversation;
     }
 
-    public function addParticipants($participants, $second = null)
+    public function participants($participants, $second = null)
     {
         if (!$second && !is_array($participants)) {
             throw InsufisantParticipant::create();

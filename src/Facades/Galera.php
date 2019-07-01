@@ -16,6 +16,6 @@ class Galera extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'Galera';
+        return 'galera';
     }
 }

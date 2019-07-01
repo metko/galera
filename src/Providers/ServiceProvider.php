@@ -27,5 +27,12 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
+        $this->app->singleton("Galera\User", function ($app) {
+            if (app()->environment() == 'testing') {
+                return new \Metko\Galera\Tests\User();
+            }
+
+            //return new $config['user']();
+        });
     }
 }

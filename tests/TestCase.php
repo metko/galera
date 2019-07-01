@@ -18,6 +18,6 @@ abstract class TestCase extends BaseTestCase
         $this->user3 = factory(User::class)->create();
         $this->user4 = factory(User::class)->create();
 
-        $this->conversation = Galera::addParticipants([$this->user, 2])->create();
+        $this->conversation = Galera::participants([$this->user, 2])->make();
     }
 }

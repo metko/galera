@@ -67,7 +67,7 @@ class MessagesTest extends TestCase
     public function reffering_a_message_that_doesnt_belongs_to_the_conversation_throw_exception()
     {
         $this->expectException(MessageDoesntBelongsToConversation::class);
-        $conversation = Galera::create(1, 2);
+        $conversation = Galera::participants(1, 2)->make();
         $this->user->write('test message', $this->conversation->id);
         $message1 = GlrMessage::all()->last();
         $this->user2->write('response message', $conversation->id, $message1);

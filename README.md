@@ -6,14 +6,14 @@ Installations
 ----------------
 ###### Step 1
 ```bash
-composer require metko/galera 
+composer require metko/galera
 ```
 
 ###### Step 2
-Publish the config file and the asset 
+Publish the config file and the asset
 ```bash
 php artisan pusblish --tag:galera
- ```
+```
 
 How to use it
 ----------------
@@ -49,7 +49,7 @@ $user->write('My message', $conversation, $message->id); // You can pass a model
 
 ###### Get a messsage
 ```php
-Galera::messages(1); 
+Galera::messages(1);
 ```
 
 Test cases

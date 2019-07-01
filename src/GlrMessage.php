@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class GlrMessage extends Model
 {
     use SoftDeletes;
+
     protected $guarded = [];
 
     public function isResponse()

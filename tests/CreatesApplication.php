@@ -14,7 +14,7 @@ trait CreatesApplication
     protected function getPackageAliases($app)
     {
         return [
-            'Galera' => 'Metko\Galera\GaleraClass',
+            'galera' => 'Metko\Galera\galera',
         ];
     }
 

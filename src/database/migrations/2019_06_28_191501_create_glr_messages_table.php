@@ -17,6 +17,7 @@ class CreateGlrMessagesTable extends Migration
             $table->unsignedBigInteger('owner_id');
             $table->unsignedBigInteger('conversation_id');
             $table->unsignedBigInteger('reffer_to')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
