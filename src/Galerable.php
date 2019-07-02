@@ -117,6 +117,7 @@ trait Galerable
     {
         return GlrMessageNotification::unreadMessagesUser($this->id)
                     ->where('conversation_id', $conversation_id)
+                    ->where('read_at', null)
                     ->update(['read_at' => now()]);
     }
 

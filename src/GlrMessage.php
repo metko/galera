@@ -90,8 +90,16 @@ class GlrMessage extends Model
      */
     public function markAsRead()
     {
-        // Le message X sur la table notification est-il lu pour les utilisateur de la conversation
         return GlrMessageNotification::where('message_id', $this->id)
           ->update(['read_at' => now()]);
+    }
+
+    /**
+     * markAsRead.
+     */
+    public function scopeOfConversation($query, $conversationID)
+    {
+        $query->where('conversation_id', $conversationID)
+          ->orderBy('created_at', 'desc');
     }
 }

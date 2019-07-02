@@ -122,4 +122,14 @@ class MessagesTest extends TestCase
         $this->user->write('test message', $this->conversation->id);
         $this->assertCount(0, $this->conversation->messages->count());
     }
+
+    /** @test */
+    public function can_retreive_message_of_a_conversation_and_paginate()
+    {
+        for ($i = 0; $i < 30; ++$i) {
+            $this->user->write('test message '.$i, $this->conversation);
+        }
+        $messages = Galera::ofConversation($this->conversation)->paginate(15);
+        $this->assertCount(15, $messages);
+    }
 }

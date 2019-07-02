@@ -296,7 +296,6 @@ class Galera
 
     public function getLastConversations()
     {
-        //$conversations = GlrConversation::orderBy();
         $conversations = GlrConversation::with(['messages' => function ($query) {
             $query->orderBy('updated_at', 'desc');
         }])->orderBy('updated_at', 'desc')->get();
@@ -304,14 +303,12 @@ class Galera
         return $conversations;
     }
 
-    public function getConversation($conversation_id)
+    public function ofConversation($conversation, $nbMessages = 25)
     {
-        $conversation = self::conversation($conversation_id);
+        if ($conversation instanceof GlrConversation) {
+            $conversation = $conversation->id;
+        }
 
-        $conversations = GlrConversation::with(['messages' => function ($query) {
-            $query->orderBy('updated_at', 'desc');
-        }])->orderBy('updated_at', 'desc')->get();
-
-        return $conversations;
+        return GlrMessage::ofConversation($conversation);
     }
 }
