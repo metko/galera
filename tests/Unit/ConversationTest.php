@@ -103,4 +103,29 @@ class ConversationTest extends TestCase
         $this->conversation->fresh()->clear();
         $this->assertCount(0, $this->conversation->fresh()->messages);
     }
+
+    /** @test */
+    public function it_has_unreadMessages()
+    {
+        $this->user->write('test message', $this->conversation->id);
+        $this->user2->write('test message', $this->conversation->id);
+        $this->assertCount(2, $this->conversation->unreadMessages());
+    }
+
+    /** @test */
+    public function it_has_unreadCount()
+    {
+        $this->user->write('test message', $this->conversation->id);
+        $this->user2->write('test message', $this->conversation->id);
+        $this->assertSame(2, $this->conversation->unreadCount());
+    }
+
+    /** @test */
+    public function it_has_readAll()
+    {
+        $this->user->write('test message', $this->conversation->id);
+        $this->user2->write('test message', $this->conversation->id);
+        $this->conversation->readAll();
+        $this->assertSame(0, $this->conversation->unreadCount());
+    }
 }

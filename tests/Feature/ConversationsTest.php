@@ -23,7 +23,7 @@ class ConversationsTest extends TestCase
     {
         $conversation = Galera::conversation(1);
         $this->assertTrue($this->conversation->is($conversation));
-        $conversation = Galera::conversation($this->conversation);
+        $conversation = Galera::conversation($this->conversation->id);
         $this->assertTrue($this->conversation->is($conversation));
     }
 
@@ -101,6 +101,20 @@ class ConversationsTest extends TestCase
     }
 
     /** @test */
+    public function a_conversation_can_mark_all_the_message_as_readed()
+    {
+        $this->conversation->add(3);
+        $this->user->write('test message', $this->conversation->id);
+        $this->user2->write('test message 2', $this->conversation->id);
+        $message = $this->conversation->messages->last();
+        $this->user->write('test message 3', $this->conversation->id, $message->id);
+        $this->user2->write('test message 4', $this->conversation->id);
+        $this->assertSame(8, $this->conversation->unreadCount());
+        $this->conversation->readAll();
+        $this->assertSame(0, $this->conversation->unreadCount());
+    }
+
+    /** @test */
     public function remove_participants_of_conversation_of_2_will_throw_exception()
     {
         $this->expectException(Exceptions\CantRemoveUser::class);
@@ -157,5 +171,38 @@ class ConversationsTest extends TestCase
     {
         $this->expectException(Exceptions\UserDoesntExist::class);
         Galera::participants(5, 1)->make();
+    }
+
+    /** @test */
+    public function can_retreive_conversations_ordered_by_updated_at_and_new_messages()
+    {
+        $conversation1 = Galera::participants(1, 3)->make();
+        $conversation2 = Galera::participants(2, 3)->make();
+        $conversation3 = Galera::participants(3, 4)->make();
+        sleep(1);
+        $this->user3->write('test', $conversation3->id);
+        sleep(1);
+        $this->user4->write('test another', $conversation3->id);
+        $conversations = Galera::getLastConversations();
+        $this->assertTrue($conversation3->is($conversations[0]));
+    }
+
+    /** @test */
+    public function can_retreive_a_conversation()
+    {
+        $conversation1 = Galera::participants(1, 3)->make();
+        $conversation2 = Galera::participants(2, 3)->make();
+        $conversation3 = Galera::participants(3, 4)->make();
+
+        sleep(1);
+        $this->user3->write('test', $conversation3->id);
+        sleep(1);
+        $this->user4->write('test another', $conversation3->id);
+        $message = Galera::conversation($conversation3->id, true);
+        //dd($message);
+        $conversations = $this->user3->getLastConversations(true, 1);
+
+        $this->assertTrue($conversation3->is($conversations[0]));
+        $this->assertTrue($conversation3->is($conversations[0]));
     }
 }

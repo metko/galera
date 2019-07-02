@@ -11,12 +11,14 @@ class MessageWasSent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $message;
+    public $to_user;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($message)
+    public function __construct($to_user, $message)
     {
+        $this->to_user = $to_user;
         $this->message = $message;
     }
 

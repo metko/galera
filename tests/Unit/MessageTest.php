@@ -26,9 +26,9 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_responses()
     {
-        $this->user->write('message', $this->conversation);
+        $this->user->write('message', $this->conversation->id);
         $message1 = GlrMessage::all()->first();
-        $this->user2->write('response', $this->conversation, $message1);
+        $this->user2->write('response', $this->conversation->id, $message1);
         $message2 = GlrMessage::all()->last();
         $this->assertInstanceOf(GlrMessage::class, $message2->reffer);
         $this->assertTrue($message2->reffer->is($message1));
@@ -37,7 +37,7 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_owner()
     {
-        $this->user->write('message', $this->conversation);
+        $this->user->write('message', $this->conversation->id);
         $message = GlrMessage::all()->last();
         $this->assertInstanceOf(User::class, $message->owner);
         $this->assertTrue($message->owner->is($this->user));
@@ -46,7 +46,7 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_conversation()
     {
-        $this->user->write('message', $this->conversation);
+        $this->user->write('message', $this->conversation->id);
         $message = GlrMessage::all()->last();
         $this->assertInstanceOf(GlrConversation::class, $message->conversation);
         $this->assertTrue($message->conversation->is($this->conversation));
@@ -55,7 +55,7 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_isRead()
     {
-        $this->user->write('message', $this->conversation);
+        $this->user->write('message', $this->conversation->id);
         $message = $this->conversation->messages->first();
         $this->assertFalse($message->isRead());
     }
@@ -73,7 +73,7 @@ class MessageTest extends TestCase
     /** @test */
     public function it_has_status()
     {
-        $this->user->write('message', $this->conversation);
+        $this->user->write('message', $this->conversation->id);
         $message = $this->conversation->messages->first();
         $this->assertInstanceOf(GlrMessageNotification::class, $message->status->first());
     }

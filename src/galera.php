@@ -2,6 +2,8 @@
 
 namespace Metko\Galera;
 
+use Illuminate\Support\Str;
+use Metko\Galera\Events\MessageWasSent;
 use Metko\Galera\Exceptions\UserDoesntExist;
 use Metko\Galera\Exceptions\MessageDoesntExist;
 use Metko\Galera\Exceptions\MessageInvalidType;
@@ -21,6 +23,108 @@ class Galera
         $this->userInstance = config('galera.user_class');
     }
 
+    /**
+     * Add subject to conversation.
+     *
+     * @param mixed $subject
+     */
+    public function subject($subject)
+    {
+        $this->subject = $subject;
+
+        return $this;
+    }
+
+    /**
+     * Add description to the converation.
+     *
+     * @param mixed $description
+     */
+    public function description($description)
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * From user on sending message from the facade.
+     *
+     * @param mixed $user
+     */
+    public function from($user)
+    {
+        if ($user = $this->isValidUser($user)) {
+            $this->from = $user;
+        }
+
+        return $this;
+    }
+
+    /**
+     * To user on sending message from the facade.
+     *
+     * @param mixed $user
+     */
+    public function to($user)
+    {
+        if ($user = $this->isValidUser($user)) {
+            $this->to = $user;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Conversation on sending message from the facade.
+     *
+     * @param mixed $conversation
+     */
+    public function in($conversation)
+    {
+        if ($conversation = $this->conversation($conversation->id)) {
+            $this->conversation = $conversation;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Send the message with the facade.
+     *
+     * @param mixed $message
+     */
+    public function send($message)
+    {
+        $this->conversation->load('participants');
+        if (!empty($this->conversation) && $this->conversation->hasUser($this->to)) {
+            return $this->from->write($message, $this->conversation->id);
+        }
+
+        $this->conversation = self::participants($this->from, $this->to)->make();
+
+        $this->from->write($message, $this->conversation->id);
+
+        return $this->conversation;
+    }
+
+    /**
+     * Default params of the conversation;.
+     */
+    protected function defaultConversation()
+    {
+        return [
+            'closed' => $this->closed,
+            'subject' => $this->subject ?? '',
+            'description' => $this->description ?? '',
+        ];
+    }
+
+    /**
+     * Check if the user is valid before adding it in a conversation.
+     *
+     * @param mixed $user
+     */
     public function isValidUser($user)
     {
         if (is_object($user) && !$user instanceof $this->userInstance) {
@@ -38,28 +142,12 @@ class Galera
         return $user;
     }
 
-    public function make()
-    {
-        $this->conversation = GlrConversation::create($this->defaultConversation());
-        $this->addParticipants();
-
-        return $this->conversation;
-    }
-
-    protected function addParticipants()
-    {
-        if ($this->participants) {
-            if (is_array($this->participants)) {
-                $this->conversation->addMany($this->participants);
-            } else {
-                $this->conversation->add($this->participants);
-            }
-            $this->participants = null;
-        } else {
-            throw InsufisantParticipant::create();
-        }
-    }
-
+    /**
+     * Set the participants before make().
+     *
+     * @param mixed $participants
+     * @param mixed $second
+     */
     public function participants($participants, $second = null)
     {
         if (!$second && !is_array($participants)) {
@@ -79,35 +167,71 @@ class Galera
         return $this;
     }
 
-    protected function defaultConversation()
+    /**
+     * Make a conversation.
+     */
+    public function make()
     {
-        return [
-            'closed' => $this->closed,
-            'subject' => $this->subject ?? '',
-            'description' => $this->description ?? '',
-        ];
+        $this->conversation = GlrConversation::create($this->defaultConversation());
+        $this->addParticipants();
+
+        return $this->conversation;
     }
 
-    public function conversation($conversation)
+    /**
+     * Sync the participants with the property participants.
+     */
+    protected function addParticipants()
     {
-        $conversationData = $conversation;
-        if ($conversation instanceof GlrConversation) {
-            return $conversation;
-        }
-        if (is_numeric($conversation) || is_integer($conversation)) {
-            $conversation = GlrConversation::find($conversation);
-        } elseif (is_string($conversation)) {
-            $conversation = GlrConversation::wshereSlug($name)->first();
+        if ($this->participants) {
+            if (is_array($this->participants)) {
+                $this->conversation->addMany($this->participants);
+            } else {
+                $this->conversation->add($this->participants);
+            }
+            $this->participants = null;
         } else {
-            throw  ConversationInvalidType::create($conversationData);
+            throw InsufisantParticipant::create();
         }
+    }
+
+    /**
+     * Retreive the conversation.
+     *
+     * @param mixed $conversation
+     */
+    public function conversation($conversationId, $withMessages = false)
+    {
+        if (!is_numeric($conversationId) || !is_integer($conversationId)) {
+            throw  ConversationInvalidType::create($conversationId);
+        }
+        $conversation = GlrConversation::whereId($conversationId)
+            ->withCount([
+                'messages',
+                'status as unread_messages' => function ($query) {
+                    $query->where('read_at', null);
+                },
+            ]);
+
+        if ($withMessages) {
+            $conversation = $conversation->with(['messages' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }]);
+        }
+
+        $conversation = $conversation->first();
         if (!$conversation) {
-            throw  ConversationDoesntExists::create($conversationData);
+            throw  ConversationDoesntExists::create($conversationId);
         }
 
         return $conversation;
     }
 
+    /**
+     * Retreive the message.
+     *
+     * @param mixed $message
+     */
     public function message($message)
     {
         if ($message instanceof GlrMessage) {
@@ -126,70 +250,68 @@ class Galera
         return $message;
     }
 
+    /**
+     * Check if a message belongs to a conversation.
+     *
+     * @param mixed $message
+     * @param mixed $conversation
+     */
     public function messageBelongsToConversation($message, $conversation)
     {
         return $conversation->messages->contains('id', $message->id);
     }
 
-    public function subject($subject)
+    /**
+     * Send notification after user write a message.
+     *
+     * @param mixed $conversation
+     * @param mixed $from_user
+     * @param mixed $message
+     */
+    public function sendNotification($conversation, $from_user, $message)
     {
-        $this->subject = $subject;
+        $participants = $conversation->participants->filter(function ($user, $key) use ($from_user) {
+            if ($user->id != $from_user->id) {
+                return $user;
+            }
+        });
 
-        return $this;
-    }
-
-    public function description($description)
-    {
-        $this->description = $description;
-
-        return $this;
-    }
-
-    public function from($user)
-    {
-        if ($user = $this->isValidUser($user)) {
-            $this->from = $user;
+        foreach ($participants as $user) {
+            $notification = $message->status()->create([
+                'id' => Str::uuid(),
+                'to_user_id' => $user->id,
+                'from_user_id' => $from_user->id,
+                'conversation_id' => $conversation->id,
+            ]);
+            event(new MessageWasSent($user, $message));
         }
-
-        return $this;
     }
 
-    public function to($user)
+    public function all()
     {
-        if ($user = $this->isValidUser($user)) {
-            $this->to = $user;
-        }
+        $this->query = GlrConversation::all();
 
-        return $this;
+        return $this->query;
     }
 
-    public function in($conversation)
+    public function getLastConversations()
     {
-        if ($conversation = $this->conversation($conversation)) {
-            $this->conversation = $conversation;
-        }
+        //$conversations = GlrConversation::orderBy();
+        $conversations = GlrConversation::with(['messages' => function ($query) {
+            $query->orderBy('updated_at', 'desc');
+        }])->orderBy('updated_at', 'desc')->get();
 
-        return $this;
+        return $conversations;
     }
 
-    public function send($message)
+    public function getConversation($conversation_id)
     {
-        $this->conversation->load('participants');
-        if (!empty($this->conversation) && $this->conversation->hasUser($this->to)) {
-            return $this->from->write($message, $this->conversation);
-        }
+        $conversation = self::conversation($conversation_id);
 
-        $this->conversation = self::participants($this->from, $this->to)->make();
+        $conversations = GlrConversation::with(['messages' => function ($query) {
+            $query->orderBy('updated_at', 'desc');
+        }])->orderBy('updated_at', 'desc')->get();
 
-        $this->from->write($message, $this->conversation);
-
-        return $this->conversation;
-    }
-
-    public function hasNotification($user, $message)
-    {
-        return GlrMessageNotification::where('to_user_id', $user->id)
-                ->where('conversation_id', $message->conversation_id)
-                ->first();
+        return $conversations;
     }
 }

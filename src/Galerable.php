@@ -4,28 +4,72 @@ namespace Metko\Galera;
 
 use Illuminate\Support\Str;
 use Metko\Galera\Facades\Galera;
-use Metko\Galera\Events\MessageWasSent;
 use Metko\Galera\Exceptions\ConversationIsClosed;
 use Metko\Galera\Exceptions\UnauthorizedConversation;
-use Metko\Galera\Exceptions\MessageDoesntBelongsToUser;
 use Metko\Galera\Exceptions\MessageDoesntBelongsToConversation;
 
 trait Galerable
 {
+    /**
+     * conversations.
+     */
     public function conversations()
     {
-        return $this->belongsToMany(GlrConversation::class, config('galera.table_prefix').'conversation_user', 'user_id', 'conversation_id');
+        return $this->belongsToMany(GlrConversation::class, config('galera.table_prefix').'conversation_user', 'user_id', 'conversation_id')
+                ->orderby('updated_at', 'desc');
     }
 
-    public function write($message, $conversation, $response_to = null)
+    public function getLastConversations($withMessage = false, $nbMessages = 25)
     {
+        $conversations = GlrConversation::whereHas('participants', function ($query) {
+            $query->where('user_id', $this->id);
+        });
+
+        if ($withMessage) {
+            $conversations = $conversations->with(['messages' => function ($query) use ($nbMessages) {
+                $query->take($nbMessages)->orderBy('created_at', 'desc');
+            }]);
+        }
+
+        $conversations = $conversations->withCount([
+            'messages',
+            'status as unread_messages_count' => function ($query) {
+                $query->where('read_at', null)->where('user_id', $this->id);
+            },
+        ]);
+
+        $conversations = $conversations->orderBy('updated_at', 'desc')->get();
+
+        return $conversations;
+    }
+
+    /**
+     * conversations.
+     */
+    public function messages()
+    {
+        return $this->hasMany(GlrMessage::class, 'owner_id');
+    }
+
+    /**
+     * write.
+     *
+     * @param mixed $message
+     * @param mixed $conversation
+     * @param mixed $response_to
+     */
+    public function write($message, $conversationId, $response_to = null)
+    {
+        if (!$conversationId instanceof GlrConversation) {
+            $conversation = Galera::conversation($conversationId);
+        } else {
+            $conversation = $conversationId;
+        }
+
         if ($this->canWrite($conversation)) {
-            //dd($conversation);
             if (!is_array($message)) {
                 $message = ['message' => $message];
             }
-
-            $conversation = Galera::conversation($conversation);
 
             if ($response_to) {
                 $reffer = Galera::message($response_to);
@@ -40,78 +84,19 @@ trait Galerable
             $message['owner_id'] = $this->id;
             $message = $conversation->messages()->create($message);
 
-            $participants = $conversation->participants->filter(function ($user, $key) {
-                if ($user->id != $this->id) {
-                    return $user;
-                }
-            });
-            foreach ($participants as $user) {
-                $notification = $message->status()->create(['id' => Str::uuid(), 'to_user_id' => $user->id, 'from_user_id' => $this->id, 'conversation_id' => $conversation->id]);
-            }
-
-            event(new MessageWasSent($message));
+            Galera::sendNotification($conversation, $this, $message);
         } else {
             throw UnauthorizedConversation::create();
         }
     }
 
-    public function canReply($reffer)
-    {
-    }
-
-    public function readMessage($message)
-    {
-        $message = Galera::message($message);
-        //dd($message->status);
-
-        if ($this->canReadMessage($message)) {
-            //dd($message->status);
-            $noti = $message->status->filter(function ($status, $key) use ($message) {
-                if ($status->to_user_id == $this->id &&
-                    $status->conversation_id == $message->conversation_id) {
-                    return $status;
-                }
-            })->first();
-
-            return $noti->update(['read_at' => now()]);
-        } else {
-            throw MessageDoesntBelongsToUser::create($message->id);
-        }
-    }
-
-    public function hasRead($message)
-    {
-        $message = Galera::message($message);
-        if ($this->canReadMessage($message)) {
-            //dd($message->status);
-            $noti = $message->status->filter(function ($status, $key) use ($message) {
-                if ($status->to_user_id == $this->id &&
-                    $status->conversation_id == $message->conversation_id) {
-                    return $status;
-                }
-            })->first();
-
-            if ($noti->read_at) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public function canReadMessage($message)
-    {
-        $message = Galera::hasNotification($this, $message);
-        if ($message) {
-            return true;
-        }
-
-        return false;
-    }
-
+    /**
+     * canWrite.
+     *
+     * @param mixed $conversation
+     */
     public function canWrite($conversation)
     {
-        $conversation = Galera::conversation($conversation);
         if ($conversation->isClosed()) {
             throw ConversationIsClosed::create($conversation->id);
         }
@@ -121,5 +106,48 @@ trait Galerable
         }
 
         return true;
+    }
+
+    /**
+     * readAll.
+     *
+     * @param mixed $conversation_id
+     */
+    public function readAll($conversation_id)
+    {
+        return GlrMessageNotification::unreadMessagesUser($this->id)
+                    ->where('conversation_id', $conversation_id)
+                    ->update(['read_at' => now()]);
+    }
+
+    /**
+     * unreadMessages.
+     *
+     * @param mixed $conversation_id
+     */
+    public function unreadMessages($conversation_id = null)
+    {
+        $conversation = GlrMessageNotification::unreadMessagesUser($this->id);
+        if ($conversation_id) {
+            $conversation = $conversation->where('conversation_id', $conversation_id);
+        }
+        $conversation = $conversation->get();
+
+        return $conversation;
+    }
+
+    /**
+     * hasUnreadMessage.
+     *
+     * @param mixed $conversation_id
+     */
+    public function hasUnreadMessage($conversation_id = null)
+    {
+        $message = $conversation_id ? $this->unreadMessages($conversation_id) : $this->unreadMessages();
+        if ($message->first()) {
+            return true;
+        }
+
+        return false;
     }
 }

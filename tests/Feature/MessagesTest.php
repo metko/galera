@@ -119,7 +119,7 @@ class MessagesTest extends TestCase
     {
         $this->expectException(ConversationIsClosed::class);
         $this->conversation->close();
-        $this->user->write('test message', $this->conversation);
+        $this->user->write('test message', $this->conversation->id);
         $this->assertCount(0, $this->conversation->messages->count());
     }
 }

@@ -4,8 +4,6 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use Metko\Galera\GlrMessage;
-use Metko\Galera\Exceptions\MessageDoesntExist;
-use Metko\Galera\Exceptions\MessageDoesntBelongsToUser;
 
 class UserActionTest extends TestCase
 {
@@ -32,27 +30,22 @@ class UserActionTest extends TestCase
     }
 
     /** @test */
-    public function a_user_can_read_a_message()
+    public function a_user_can_read_all_message_in_conversation()
     {
         $this->user->write('test message', $this->conversation->id);
-        $message = $this->conversation->messages->first();
-        $this->user2->readMessage($message->id);
-        $this->assertTrue($message->isRead());
+        $this->user->write('test message 2', $this->conversation->id);
+        $this->user2->readAll($this->conversation->id);
+        $this->assertFalse($this->user2->hasUnreadMessage());
     }
 
     /** @test */
-    public function read_message_that_doesnt_exists_throw_an_exeption()
+    public function another_user_cant_read_message_that_doesnt_belongs_to_him()
     {
-        $this->expectException(MessageDoesntExist::class);
-        $this->user2->readMessage(22);
-    }
-
-    /** @test */
-    public function read_message_that_doesnt_belongs_to_the_user_throw_an_exeption()
-    {
-        $this->expectException(MessageDoesntBelongsToUser::class);
         $this->user->write('test message', $this->conversation->id);
-        $message = $this->conversation->messages->first();
-        $this->user3->readMessage($message);
+        $this->user2->write('test message', $this->conversation->id);
+        $this->user3->readAll($this->conversation->id);
+        $this->assertTrue($this->user->hasUnreadMessage());
+        $this->assertTrue($this->user2->hasUnreadMessage());
+        $this->assertFalse($this->user3->hasUnreadMessage());
     }
 }
