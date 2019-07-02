@@ -1,6 +1,6 @@
 {
     "name": "metko/galera",
-    "description": "Starting boilerplate for Laravel packages. Override the content in here when creating your own package",
+    "description": "Messaging/chatting package for laravel",
     "type": "library",
     "keywords": ["laravel","lumen"],
     "require": {},
@@ -58,6 +58,5 @@
             ]
         }
     },
-    "version": "1.0.0-dev",
     "minimum-stability": "dev"
 }
