@@ -22,11 +22,6 @@ class ServiceProvider extends BaseServiceProvider
             $src.'config/galera.php' => config_path('galera.php'),
         ], 'config');
         $this->loadMigrationsFrom($src.'database/migrations');
-        $this->loadRoutesFrom(dirname($src).'/routes/routes.php');
-        $this->loadViewsFrom($src.'/views', 'galera');
-        $this->publishes([
-            $src.'views', resource_path('views/vendor/galera'),
-        ]);
     }
 
     /**
