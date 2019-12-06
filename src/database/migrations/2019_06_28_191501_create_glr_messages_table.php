@@ -11,7 +11,6 @@ class CreateGlrMessagesTable extends Migration
         $prefix = config('galera.table_prefix');
         $this->tableName = $prefix.'messages';
         $this->conversationTable = $prefix.'conversations';
-        //$this->messageTable = $prefix.'messages';
     }
 
     /**
@@ -30,7 +29,6 @@ class CreateGlrMessagesTable extends Migration
 
             $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('conversation_id')->references('id')->on($this->conversationTable)->onDelete('cascade');
-            //$table->foreign('reffer_to')->references('id')->on($this->messageTable)->onDelete('cascade');
         });
     }
 
