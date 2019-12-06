@@ -22,6 +22,11 @@ class ServiceProvider extends BaseServiceProvider
             $src.'config/galera.php' => config_path('galera.php'),
         ], 'config');
         $this->loadMigrationsFrom($src.'database/migrations');
+        $this->loadRoutesFrom(dirname($src).'/routes/routes.php');
+        $this->loadViewsFrom($src.'/views', 'galera');
+        $this->publishes([
+            $src.'views', resource_path('views/vendor/galera'),
+        ]);
     }
 
     /**
@@ -31,8 +36,8 @@ class ServiceProvider extends BaseServiceProvider
     {
         if (app()->environment() == 'testing') {
             $config = require dirname(__DIR__).'/config/galera.php';
-            config(['galera' => $config]);
-            config(['galera.user_class' => "Tests\Models\User"]);
+            // config(['galera' => $config]);
+            // config(['galera.user_class' => "Tests\Models\User"]);
         }
         $this->app->singleton('galera', function () {
             return new Galera();

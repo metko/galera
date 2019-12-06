@@ -142,6 +142,38 @@ class Galera
         return $user;
     }
 
+    public function allConversations()
+    {
+        return GlrConversation::all();
+    }
+
+    public function allMessages()
+    {
+        return GlrMessage::all();
+    }
+
+    public function converationExist($users)
+    {
+        $conversation = null;
+        foreach ($users as $user) {
+            if (!$conversation) {
+                $conversation = GlrConversation::whereHas('participants', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                });
+            } else {
+                $conversation = $conversation->whereHas('participants', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                });
+            }
+        }
+
+        $conversation = $conversation->first();
+
+        // dump(collect($users)->pluck('id'));
+
+        return $conversation;
+    }
+
     /**
      * Set the participants before make().
      *
@@ -202,7 +234,7 @@ class Galera
      */
     public function conversation($conversationId, $withMessages = false)
     {
-        if (!is_numeric($conversationId) || !is_integer($conversationId)) {
+        if (!is_numeric($conversationId) && !is_integer($conversationId)) {
             throw  ConversationInvalidType::create($conversationId);
         }
         $conversation = GlrConversation::whereId($conversationId)

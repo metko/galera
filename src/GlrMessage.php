@@ -100,6 +100,6 @@ class GlrMessage extends Model
     public function scopeOfConversation($query, $conversationID)
     {
         $query->where('conversation_id', $conversationID)
-          ->orderBy('created_at', 'desc');
+          ->orderBy('created_at', 'asc');
     }
 }

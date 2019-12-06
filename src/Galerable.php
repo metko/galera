@@ -23,7 +23,7 @@ trait Galerable
     {
         $conversations = GlrConversation::whereHas('participants', function ($query) {
             $query->where('user_id', $this->id);
-        });
+        })->with('participants');
 
         if ($withMessage) {
             $conversations = $conversations->with(['messages' => function ($query) use ($nbMessages) {
@@ -34,13 +34,13 @@ trait Galerable
         $conversations = $conversations->withCount([
             'messages',
             'status as unread_messages_count' => function ($query) {
-                $query->where('read_at', null)->where('user_id', $this->id);
+                $query->where('read_at', null)->where('to_user_id', $this->id);
             },
         ]);
 
-        $conversations = $conversations->orderBy('updated_at', 'desc')->get();
+        $conversations = $conversations->orderBy('updated_at', 'desc');
 
-        return $conversations;
+        return $conversations->get();
     }
 
     /**
