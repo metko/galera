@@ -26,7 +26,6 @@ class CreateGlrMessagesTable extends Migration
             $table->uuid('reffer_to')->nullable();
             $table->softDeletes();
             $table->timestamps();
-            die($this->conversationTable);
             $table->foreign('owner_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('conversation_id')->references('id')->on($this->conversationTable)->onDelete('cascade');
         });
